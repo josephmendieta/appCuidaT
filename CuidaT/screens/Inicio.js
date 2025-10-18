@@ -7,81 +7,98 @@ import {
   Image,
   StyleSheet,
   Dimensions,
+  ScrollView,
 } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
 export default function Inicio({ navigation }) {
   return (
-    <View style={styles.container}>
-      {/* Logo */}
-      <Image
-        source={require("../assets/images/logoCuidaT.jpg")}
-        style={styles.logo}
-        resizeMode="contain"
-      />
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        {/* Logo */}
+        <Image
+          source={require("../assets/images/logoCuidaT.jpg")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        {/* Campos de entrada */}
+        <TextInput
+          style={styles.input}
+          placeholder="Correo electrónico"
+          placeholderTextColor="#555"
+          keyboardType="email-address"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Contraseña"
+          placeholderTextColor="#555"
+          secureTextEntry
+        />
 
-      {/* Campos de entrada */}
-      <TextInput
-        style={styles.input}
-        placeholder="Correo electrónico"
-        placeholderTextColor="#555"
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        placeholderTextColor="#555"
-        secureTextEntry
-      />
+        {/* Botón de iniciar sesión */}
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => navigation.navigate("Home")}
+        >
+          <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+        </TouchableOpacity>
 
-      {/* Botón de iniciar sesión */}
-      <TouchableOpacity
-        style={styles.loginButton}
-        onPress={() => navigation.navigate("Home")} // Ajusta el destino
-      >
-        <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
-      </TouchableOpacity>
+        {/* Enlace de registro */}
+        <Text style={styles.registerText}>
+          ¿No tienes una cuenta?{" "}
+          <Text
+            style={styles.registerLink}
+            onPress={() => navigation.navigate("Registro")}
+          >
+            Registrarse
+          </Text>
+        </Text>
 
-      {/* Enlace de contraseña olvidada */}
-      <TouchableOpacity>
-        <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
-      </TouchableOpacity>
+        {/* Enlace de contraseña olvidada */}
+        <TouchableOpacity>
+          <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
+        </TouchableOpacity>
 
-      {/* Separador */}
-      <View style={styles.separatorContainer}>
-        <View style={styles.line} />
-        <Text style={styles.orText}>o</Text>
-        <View style={styles.line} />
+        {/* Separador */}
+        <View style={styles.separatorContainer}>
+          <View style={styles.line} />
+          <Text style={styles.orText}>o</Text>
+          <View style={styles.line} />
+        </View>
+
+        {/* Botón Google */}
+        <TouchableOpacity style={styles.socialButton}>
+          <Image
+            source={require("../assets/iconos/google.png")}
+            style={styles.icon}
+          />
+          <Text style={styles.socialText}>Continuar con Google</Text>
+        </TouchableOpacity>
+
+        {/* Botón Facebook */}
+        <TouchableOpacity style={styles.socialButton}>
+          <Image
+            source={require("../assets/iconos/facebook.png")}
+            style={styles.icon}
+          />
+          <Text style={styles.socialText}>Continuar con Facebook</Text>
+        </TouchableOpacity>
       </View>
-
-      {/* Botones sociales */}
-      <TouchableOpacity style={styles.socialButton}>
-        <Image
-          source={require("../assets/iconos/google.png")}
-          style={styles.icon}
-        />
-        <Text style={styles.socialText}>Continuar con Google</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.socialButton}>
-        <Image
-          source={require("../assets/iconos/facebook.png")}
-          style={styles.icon}
-        />
-        <Text style={styles.socialText}>Continuar con Facebook</Text>
-      </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f7f7f7",
-    alignItems: "center",
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: width * 0.07,
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+  },
+  container: {
+    width: "85%",
+    alignItems: "center",
   },
   logo: {
     width: width * 1,
@@ -90,12 +107,12 @@ const styles = StyleSheet.create({
   },
   input: {
     width: "100%",
-    backgroundColor: "#d8eaff",
+    backgroundColor: "#e8f1ff",
     borderRadius: 20,
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     fontSize: 16,
-    marginBottom: 15,
+    marginBottom: 12,
   },
   loginButton: {
     backgroundColor: "#3da9fc",
@@ -106,24 +123,34 @@ const styles = StyleSheet.create({
     marginTop: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
   loginButtonText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 17,
+    fontWeight: "600",
+  },
+  registerText: {
+    fontSize: 14,
+    marginTop: 12,
+    color: "#333",
+  },
+  registerLink: {
+    color: "#3da9fc",
     fontWeight: "600",
   },
   forgotText: {
     color: "#3da9fc",
     fontSize: 14,
-    marginTop: 10,
+    marginTop: 8,
   },
   separatorContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 20,
+    width: "100%",
   },
   line: {
     flex: 1,
@@ -133,6 +160,7 @@ const styles = StyleSheet.create({
   orText: {
     marginHorizontal: 10,
     color: "#555",
+    fontSize: 15,
   },
   socialButton: {
     flexDirection: "row",
@@ -141,13 +169,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 25,
-    paddingVertical: 10,
+    paddingVertical: 12,
     width: "100%",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   icon: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
     marginRight: 10,
   },
   socialText: {
