@@ -11,8 +11,12 @@ import Inicio from "./screens/Inicio";
 import Registro from "./screens/Registro";
 import ConfPrivacidad from "./screens/confPrivacidad";
 
+// Contexto de inactividad
+import { InactivityProvider } from "./context/InactivityContext";
+
 const Stack = createNativeStackNavigator();
 
+// 🔹 Flujo de autenticación (sin sesión iniciada)
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Bienvenida">
     <Stack.Screen name="Bienvenida" component={Bienvenida} />
@@ -21,10 +25,13 @@ const AuthStack = () => (
   </Stack.Navigator>
 );
 
-const AppStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="ConfPrivacidad">
-    <Stack.Screen name="ConfPrivacidad" component={ConfPrivacidad} />
-  </Stack.Navigator>
+// 🔹 Flujo principal (cuando hay sesión activa)
+const AppStack = ({ navigation }) => (
+  <InactivityProvider navigation={navigation}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="ConfPrivacidad">
+      <Stack.Screen name="ConfPrivacidad" component={ConfPrivacidad} />
+    </Stack.Navigator>
+  </InactivityProvider>
 );
 
 export default function App() {
@@ -32,6 +39,7 @@ export default function App() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
+    // Escucha el estado de autenticación del usuario
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("✅ Usuario autenticado:", user.email);
@@ -46,6 +54,7 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // Pantalla de carga mientras se verifica la sesión
   if (cargando) {
     return (
       <View style={styles.loaderContainer}>
