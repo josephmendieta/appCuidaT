@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { View, ActivityIndicator, StyleSheet, Alert } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, getRedirectResult, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "./firebaseConfig";
 
 // Pantallas
@@ -16,7 +16,6 @@ import { InactivityProvider } from "./context/InactivityContext";
 
 const Stack = createNativeStackNavigator();
 
-// 🔹 Flujo de autenticación (sin sesión iniciada)
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Bienvenida">
     <Stack.Screen name="Bienvenida" component={Bienvenida} />
@@ -25,7 +24,6 @@ const AuthStack = () => (
   </Stack.Navigator>
 );
 
-// 🔹 Flujo principal (cuando hay sesión activa)
 const AppStack = ({ navigation }) => (
   <InactivityProvider navigation={navigation}>
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="ConfPrivacidad">
@@ -39,22 +37,29 @@ export default function App() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    // Escucha el estado de autenticación del usuario
+    // Recuperar sesión de redirección (Google en móvil)
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          const user = result.user;
+          console.log("✅ Usuario redirigido desde Google:", user.email);
+          Alert.alert("Bienvenido", `Has iniciado sesión como ${user.displayName || user.email}`);
+          setUsuario(user);
+        }
+      })
+      .catch((error) => {
+        if (error.message) console.warn("⚠️ Error en getRedirectResult:", error.message);
+      });
+  }, []);
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("✅ Usuario autenticado:", user.email);
-        setUsuario(user);
-      } else {
-        console.log("⚠️ No hay sesión iniciada");
-        setUsuario(null);
-      }
+      setUsuario(user || null);
       setCargando(false);
     });
-
     return () => unsubscribe();
   }, []);
 
-  // Pantalla de carga mientras se verifica la sesión
   if (cargando) {
     return (
       <View style={styles.loaderContainer}>
