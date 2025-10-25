@@ -5,7 +5,8 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   Linking, 
-  ScrollView 
+  ScrollView,
+  Alert
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import CheckBox from "expo-checkbox";
@@ -16,9 +17,18 @@ export default function ConfPrivacidad({ navigation }) {
 
   const handleContinuar = () => {
     if (aceptaPolitica && aceptaTratamiento) {
-      navigation.navigate("Inicio"); // o la pantalla siguiente (Chat, Home, etc.)
+      Alert.alert(
+        "Confirmación",
+        "Gracias por aceptar nuestras políticas de privacidad.",
+        [
+          {
+            text: "Continuar",
+            onPress: () => navigation.replace("ChatEmpatico"), // ✅ Redirección correcta
+          },
+        ]
+      );
     } else {
-      alert("Por favor, acepta ambas políticas antes de continuar.");
+      Alert.alert("Aviso", "Por favor, acepta ambas políticas antes de continuar.");
     }
   };
 

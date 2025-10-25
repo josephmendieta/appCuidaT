@@ -8,7 +8,7 @@ export const InactivityContext = createContext();
 /**
  * Proveedor global de detección de inactividad con advertencia y cierre automático.
  */
-export function InactivityProvider({ navigation, children, timeout = 600000 }) {
+export function InactivityProvider({ navigation, children, timeout = 60000 }) {
   const mainTimerRef = useRef(null);
   const warningTimerRef = useRef(null);
   const countdownRef = useRef(null);
