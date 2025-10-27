@@ -4,12 +4,13 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { onAuthStateChanged, getRedirectResult } from "firebase/auth";
 import { auth } from "./firebaseConfig";
+import { useNavigation } from "@react-navigation/native";
 
 // Pantallas
 import Bienvenida from "./screens/Bienvenida";
 import Inicio from "./screens/Inicio";
 import Registro from "./screens/Registro";
-import ConfPrivacidad from "./screens/ConfPrivacidad";
+import ConfPrivacidad from "./screens/confPrivacidad";
 import ChatEmpatico from "./screens/ChatEmpatico";
 
 // Contexto de inactividad
@@ -27,14 +28,18 @@ const AuthStack = () => (
 );
 
 // 🔹 Flujo principal (usuarios autenticados)
-const AppStack = ({ navigation }) => (
-  <InactivityProvider navigation={navigation}>
-    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="ConfPrivacidad">
-      <Stack.Screen name="ConfPrivacidad" component={ConfPrivacidad} />
-      <Stack.Screen name="ChatEmpatico" component={ChatEmpatico} />
-    </Stack.Navigator>
-  </InactivityProvider>
-);
+const AppStack = () => {
+  const navigation = useNavigation();
+
+  return (
+    <InactivityProvider navigation={navigation}>
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="ConfPrivacidad">
+        <Stack.Screen name="ConfPrivacidad" component={ConfPrivacidad} />
+        <Stack.Screen name="ChatEmpatico" component={ChatEmpatico} />
+      </Stack.Navigator>
+    </InactivityProvider>
+  );
+};
 
 export default function App() {
   const [usuario, setUsuario] = useState(null);

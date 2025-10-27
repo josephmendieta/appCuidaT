@@ -1,40 +1,68 @@
-import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Linking, 
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Linking,
   ScrollView,
-  Alert
+  Alert,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import CheckBox from "expo-checkbox";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // ← 🧠 Importante
 
 export default function ConfPrivacidad({ navigation }) {
   const [aceptaPolitica, setAceptaPolitica] = useState(false);
   const [aceptaTratamiento, setAceptaTratamiento] = useState(false);
+  const [cargando, setCargando] = useState(true);
 
-  const handleContinuar = () => {
+  // ✅ Verifica si ya se aceptaron las políticas anteriormente
+  useEffect(() => {
+    const verificarAceptacion = async () => {
+      try {
+        const aceptado = await AsyncStorage.getItem("politicasAceptadas");
+        if (aceptado === "true") {
+          // Si ya aceptó antes, va directo al chat
+          navigation.replace("ChatEmpatico");
+        } else {
+          setCargando(false);
+        }
+      } catch (error) {
+        console.log("Error al verificar aceptación:", error);
+        setCargando(false);
+      }
+    };
+    verificarAceptacion();
+  }, []);
+
+  // ✅ Guarda la aceptación y redirige
+  const handleContinuar = async () => {
     if (aceptaPolitica && aceptaTratamiento) {
-      Alert.alert(
-        "Confirmación",
-        "Gracias por aceptar nuestras políticas de privacidad.",
-        [
-          {
-            text: "Continuar",
-            onPress: () => navigation.replace("ChatEmpatico"), // ✅ Redirección correcta
-          },
-        ]
-      );
+      try {
+        await AsyncStorage.setItem("politicasAceptadas", "true"); // Guarda preferencia
+        Alert.alert(
+          "Privacidad confirmada",
+          "Gracias por aceptar nuestras políticas. Te redirigiremos al asistente empático.",
+          [
+            {
+              text: "Continuar",
+              onPress: () => navigation.replace("ChatEmpatico"),
+            },
+          ]
+        );
+      } catch (error) {
+        console.log("Error al guardar aceptación:", error);
+      }
     } else {
       Alert.alert("Aviso", "Por favor, acepta ambas políticas antes de continuar.");
     }
   };
 
+  if (cargando) return null; // Evita parpadeos mientras se verifica
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Encabezado */}
       <Text style={styles.tituloSeccion}>Configuración de Privacidad</Text>
       <Text style={styles.tituloPrincipal}>Tu Privacidad es Nuestra Prioridad</Text>
       <Text style={styles.descripcion}>
@@ -42,7 +70,6 @@ export default function ConfPrivacidad({ navigation }) {
         confidencialidad de tus datos.
       </Text>
 
-      {/* Tarjeta de política */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.iconContainer}>
@@ -55,7 +82,6 @@ export default function ConfPrivacidad({ navigation }) {
         </View>
       </View>
 
-      {/* Checkboxes */}
       <View style={styles.checkboxContainer}>
         <View style={styles.checkboxRow}>
           <CheckBox
@@ -87,7 +113,6 @@ export default function ConfPrivacidad({ navigation }) {
         </View>
       </View>
 
-      {/* Bloque informativo */}
       <View style={styles.infoBox}>
         <Ionicons name="lock-closed-outline" size={22} color="#007AFF" />
         <Text style={styles.infoText}>
@@ -96,7 +121,6 @@ export default function ConfPrivacidad({ navigation }) {
         </Text>
       </View>
 
-      {/* Botón */}
       <TouchableOpacity
         style={[
           styles.boton,
