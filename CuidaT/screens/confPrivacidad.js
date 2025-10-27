@@ -38,26 +38,22 @@ export default function ConfPrivacidad({ navigation }) {
 
   // ✅ Guarda la aceptación y redirige
   const handleContinuar = async () => {
-    if (aceptaPolitica && aceptaTratamiento) {
-      try {
-        await AsyncStorage.setItem("politicasAceptadas", "true"); // Guarda preferencia
-        Alert.alert(
-          "Privacidad confirmada",
-          "Gracias por aceptar nuestras políticas. Te redirigiremos al asistente empático.",
-          [
-            {
-              text: "Continuar",
-              onPress: () => navigation.replace("ChatEmpatico"),
-            },
-          ]
-        );
-      } catch (error) {
-        console.log("Error al guardar aceptación:", error);
-      }
-    } else {
-      Alert.alert("Aviso", "Por favor, acepta ambas políticas antes de continuar.");
+  if (aceptaPolitica && aceptaTratamiento) {
+    try {
+      await AsyncStorage.setItem("politicasAceptadas", "true"); // Guarda preferencia
+      Alert.alert("Privacidad confirmada", "Gracias por aceptar nuestras políticas.");
+      // 🔹 Redirige al chat inmediatamente después del alert
+      setTimeout(() => {
+        navigation.replace("ChatEmpatico");
+      }, 500);
+    } catch (error) {
+      console.log("Error al guardar aceptación:", error);
     }
-  };
+  } else {
+    Alert.alert("Aviso", "Por favor, acepta ambas políticas antes de continuar.");
+  }
+};
+
 
   if (cargando) return null; // Evita parpadeos mientras se verifica
 

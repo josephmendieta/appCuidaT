@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator, StyleSheet, Alert } from "react-native";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { onAuthStateChanged, getRedirectResult } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebaseConfig";
 import { useNavigation } from "@react-navigation/native";
 
@@ -12,6 +12,7 @@ import Inicio from "./screens/Inicio";
 import Registro from "./screens/Registro";
 import ConfPrivacidad from "./screens/confPrivacidad";
 import ChatEmpatico from "./screens/ChatEmpatico";
+import CamaraScreen from "./screens/CamaraScreen";
 
 // Contexto de inactividad
 import { InactivityProvider } from "./context/InactivityContext";
@@ -36,6 +37,7 @@ const AppStack = () => {
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="ConfPrivacidad">
         <Stack.Screen name="ConfPrivacidad" component={ConfPrivacidad} />
         <Stack.Screen name="ChatEmpatico" component={ChatEmpatico} />
+        <Stack.Screen name="CamaraScreen" component={CamaraScreen} />
       </Stack.Navigator>
     </InactivityProvider>
   );
@@ -45,32 +47,15 @@ export default function App() {
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(true);
 
-  // Recuperar sesión de redirección (ej. Google en móvil)
-  useEffect(() => {
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result && result.user) {
-          const user = result.user;
-          console.log("✅ Usuario redirigido desde Google:", user.email);
-          Alert.alert("Bienvenido", `Has iniciado sesión como ${user.displayName || user.email}`);
-          setUsuario(user);
-        }
-      })
-      .catch((error) => {
-        if (error.message) console.warn("⚠️ Error en getRedirectResult:", error.message);
-      });
-  }, []);
-
-  // Escucha el estado de autenticación
+  // ✅ Escucha el estado de autenticación (sin getRedirectResult)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUsuario(user || null);
       setCargando(false);
     });
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
-  // Pantalla de carga mientras se verifica la sesión
   if (cargando) {
     return (
       <View style={styles.loaderContainer}>
@@ -79,7 +64,6 @@ export default function App() {
     );
   }
 
-  // Renderizado condicional según autenticación
   return (
     <NavigationContainer>
       {usuario ? <AppStack /> : <AuthStack />}

@@ -8,6 +8,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -27,7 +28,8 @@ export default function ChatEmpatico({ navigation }) {
     const newMessage = { id: Date.now(), sender: "user", text: input };
     setMessages([...messages, newMessage]);
     setInput("");
-    // Simular respuesta de la IA
+
+    // Simular respuesta IA
     setTimeout(() => {
       const aiResponse = {
         id: Date.now() + 1,
@@ -40,92 +42,113 @@ export default function ChatEmpatico({ navigation }) {
 
   const handleVoiceInput = () => {
     setIsRecording((prev) => !prev);
+    console.log(isRecording ? "🛑 Grabación detenida" : "🎤 Grabando voz...");
+  };
 
-    if (!isRecording) {
-      console.log("🎤 Grabando voz...");
-      // Aquí conectarás la IA de análisis de voz (por ejemplo, usando Whisper, Azure o Google Speech)
-    } else {
-      console.log("🛑 Grabación detenida. Procesando audio...");
-      // Aquí podrías mostrar un texto transcrito o analizar tono emocional
-    }
+  const handleCamera = () => {
+    navigation.navigate("CamaraScreen");
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: "#fff" }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Chat con IA Empática</Text>
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Chat con IA Empática</Text>
+        </View>
 
-      <ScrollView style={styles.chatContainer}>
-        {messages.map((msg) => (
-          <View
-            key={msg.id}
-            style={[
-              styles.message,
-              msg.sender === "user" ? styles.userMsg : styles.aiMsg,
-            ]}
-          >
-            {msg.sender === "ia" && (
-              <Ionicons
-                name="person-circle-outline"
-                size={32}
-                color="#555"
-                style={{ marginRight: 8 }}
-              />
-            )}
-            <View style={{ flexShrink: 1 }}>
-              <Text
-                style={{
-                  color: msg.sender === "user" ? "#fff" : "#000",
-                  fontSize: 15,
-                }}
-              >
-                {msg.text}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Escribe tu mensaje..."
-          value={input}
-          onChangeText={setInput}
-        />
-        <TouchableOpacity
-          style={[
-            styles.iconButton,
-            isRecording && { backgroundColor: "#ff4d4d" },
-          ]}
-          onPress={handleVoiceInput}
+        {/* Chat */}
+        <ScrollView
+          style={styles.chatContainer}
+          contentContainerStyle={{ paddingBottom: 80 }}
         >
-          <Ionicons
-            name={isRecording ? "mic" : "mic-outline"}
-            size={22}
-            color="#fff"
+          {messages.map((msg) => (
+            <View
+              key={msg.id}
+              style={[
+                styles.message,
+                msg.sender === "user" ? styles.userMsg : styles.aiMsg,
+              ]}
+            >
+              {msg.sender === "ia" && (
+                <Ionicons
+                  name="person-circle-outline"
+                  size={32}
+                  color="#555"
+                  style={{ marginRight: 8 }}
+                />
+              )}
+              <View style={{ flexShrink: 1 }}>
+                <Text
+                  style={{
+                    color: msg.sender === "user" ? "#fff" : "#000",
+                    fontSize: 15,
+                  }}
+                >
+                  {msg.text}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Barra de escritura */}
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Escribe tu mensaje..."
+            value={input}
+            onChangeText={setInput}
           />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} onPress={handleSend}>
-          <Ionicons name="send" size={20} color="#fff" />
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+          <TouchableOpacity
+            style={[
+              styles.iconButton,
+              isRecording && { backgroundColor: "#ff4d4d" },
+            ]}
+            onPress={handleVoiceInput}
+          >
+            <Ionicons
+              name={isRecording ? "mic" : "mic-outline"}
+              size={22}
+              color="#fff"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} onPress={handleCamera}>
+            <Ionicons name="camera-outline" size={22} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} onPress={handleSend}>
+            <Ionicons name="send" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Menú inferior */}
+        <View style={styles.menuInferior}>
+          <TouchableOpacity style={styles.menuItem}>
+            <Ionicons name="chatbubble-outline" size={24} color="#3da9fc" />
+            <Text style={[styles.menuText, { color: "#3da9fc" }]}>Chat</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem}>
+            <Ionicons name="alert-circle-outline" size={24} color="#A0A0A0" />
+            <Text style={styles.menuText}>Emergencia</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem}>
+            <Ionicons name="person-outline" size={24} color="#A0A0A0" />
+            <Text style={styles.menuText}>Perfil</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
@@ -133,7 +156,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    marginLeft: 15,
     color: "#000",
   },
   chatContainer: {
@@ -185,5 +207,21 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
+  },
+  menuInferior: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+    backgroundColor: "#fff",
+  },
+  menuItem: {
+    alignItems: "center",
+  },
+  menuText: {
+    fontSize: 12,
+    color: "#A0A0A0",
   },
 });

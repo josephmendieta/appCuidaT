@@ -1,9 +1,7 @@
-// firebaseConfig.js
 import { initializeApp, getApps } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getAnalytics, isSupported } from "firebase/analytics";
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Configuración de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCAaD_0ghb1wR3fpRg6A0VNzXLtHMgNa3k",
   authDomain: "cuidat-53565.firebaseapp.com",
@@ -14,14 +12,10 @@ const firebaseConfig = {
   measurementId: "G-0T0YQHEWXF",
 };
 
-// Inicializa la app
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
-// Inicializa Analytics solo si el entorno lo soporta (evita errores en Expo web)
-isSupported().then((yes) => {
-  if (yes) getAnalytics(app);
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
 });
 
-// Exporta Auth para usarlo en toda la app
-export const auth = getAuth(app);
-export default app;
+export { auth, app };
