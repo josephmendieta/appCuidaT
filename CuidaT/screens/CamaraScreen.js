@@ -1,48 +1,30 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Image,
-  Alert,
-  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Camera, CameraType } from "expo-camera";
 
 export default function CamaraScreen({ navigation }) {
-  const [hasPermission, setHasPermission] = useState(null);
-  const [isCameraActive, setIsCameraActive] = useState(false);
-  const cameraRef = useRef(null);
+  const [selectedEmotion, setSelectedEmotion] = useState(null);
 
-  // ✅ Pedir permisos solo en dispositivos nativos
-  useEffect(() => {
-    if (Platform.OS !== "web") {
-      (async () => {
-        const { status } = await Camera.requestCameraPermissionsAsync();
-        setHasPermission(status === "granted");
-      })();
-    } else {
-      setHasPermission(true); // En web, asumimos permiso pero sin cámara
-    }
-  }, []);
+  const emociones = [
+    { nombre: "Ansiedad", icono: "sad-outline" },
+    { nombre: "Tristeza", icono: "sad" },
+    { nombre: "Enojo", icono: "alert-circle-outline" },
+    { nombre: "Felicidad", icono: "happy-outline" },
+  ];
 
-  const iniciarCamara = () => {
-    if (Platform.OS === "web") {
-      Alert.alert("No disponible", "La cámara solo funciona en Android o iOS.");
+  const iniciarAnalisis = () => {
+    if (!selectedEmotion) {
+      alert("Selecciona una emoción antes de iniciar el análisis.");
       return;
     }
-    if (hasPermission === false) {
-      Alert.alert("Permiso denegado", "Debes habilitar la cámara en los ajustes.");
-      return;
-    }
-    setIsCameraActive(true);
-  };
-
-  const detenerCamara = () => {
-    setIsCameraActive(false);
+    console.log("🎭 Emoción seleccionada:", selectedEmotion);
+    alert(`Analizando emoción: ${selectedEmotion}`);
   };
 
   return (
@@ -55,50 +37,56 @@ export default function CamaraScreen({ navigation }) {
         <Text style={styles.headerTitle}>Análisis Facial</Text>
       </View>
 
-      {!isCameraActive ? (
-        <>
-          <Text style={styles.title}>Detecta tus emociones</Text>
-          <Text style={styles.description}>
-            Esta herramienta utiliza la cámara para analizar tus expresiones faciales.
-            Puedes iniciar la cámara cuando estés listo.
-          </Text>
+      {/* Título y descripción */}
+      <Text style={styles.title}>Detecta tus emociones</Text>
+      <Text style={styles.description}>
+        Esta herramienta utilizará tu cámara para analizar tus expresiones
+        faciales y detectar emociones. Por ahora, este espacio muestra cómo se
+        vería el área de la cámara.
+      </Text>
 
-          {/* Imagen central */}
-          <View style={styles.cameraContainer}>
-            <Image
-              source={{
-                uri: "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
-              }}
-              style={{ width: "100%", height: 220 }}
+      {/* Marco donde iría la cámara */}
+      <View style={styles.cameraContainer}>
+        <Ionicons name="camera-outline" size={80} color="#9CA3AF" />
+        <Text style={styles.placeholderText}>Vista previa de cámara</Text>
+      </View>
+
+      {/* Tarjetas de emociones */}
+      <View style={styles.emotionsContainer}>
+        {emociones.map((e, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.emotionCard,
+              selectedEmotion === e.nombre && styles.emotionSelected,
+            ]}
+            onPress={() => setSelectedEmotion(e.nombre)}
+          >
+            <Ionicons
+              name={e.icono}
+              size={30}
+              color={selectedEmotion === e.nombre ? "#fff" : "#555"}
             />
-            <TouchableOpacity style={styles.playButton} onPress={iniciarCamara}>
-              <Ionicons name="play-circle" size={60} color="#555" />
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.startButton} onPress={iniciarCamara}>
-            <Text style={styles.startText}>Iniciar Cámara</Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          {Platform.OS === "web" ? (
-            <Text style={styles.notSupported}>
-              ⚠️ La cámara no está disponible en el navegador web.
+            <Text
+              style={[
+                styles.emotionText,
+                selectedEmotion === e.nombre && { color: "#fff" },
+              ]}
+            >
+              {e.nombre}
             </Text>
-          ) : (
-            <Camera
-              ref={cameraRef}
-              style={styles.cameraView}
-              type={CameraType.front}
-            />
-          )}
-
-          <TouchableOpacity style={styles.stopButton} onPress={detenerCamara}>
-            <Text style={styles.stopText}>Detener Cámara</Text>
           </TouchableOpacity>
-        </>
-      )}
+        ))}
+      </View>
+
+      {/* Botón de análisis */}
+      <TouchableOpacity
+        style={[styles.startButton, !selectedEmotion && { opacity: 0.6 }]}
+        onPress={iniciarAnalisis}
+        disabled={!selectedEmotion}
+      >
+        <Text style={styles.startText}>Iniciar Análisis</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -132,17 +120,43 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   cameraContainer: {
-    alignItems: "center",
-    justifyContent: "center",
+    width: "100%",
+    height: 220,
     borderRadius: 16,
     backgroundColor: "#f0f0f0",
-    overflow: "hidden",
-    position: "relative",
-    marginBottom: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 25,
   },
-  playButton: {
-    position: "absolute",
-    alignSelf: "center",
+  placeholderText: {
+    color: "#9CA3AF",
+    marginTop: 10,
+  },
+  emotionsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom: 25,
+  },
+  emotionCard: {
+    width: "47%",
+    backgroundColor: "#f5f5f5",
+    borderRadius: 12,
+    paddingVertical: 20,
+    alignItems: "center",
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+  },
+  emotionSelected: {
+    backgroundColor: "#3da9fc",
+    borderColor: "#3da9fc",
+  },
+  emotionText: {
+    marginTop: 8,
+    fontSize: 15,
+    color: "#333",
+    fontWeight: "500",
   },
   startButton: {
     backgroundColor: "#3da9fc",
@@ -154,29 +168,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
-  },
-  cameraView: {
-    width: "100%",
-    height: 400,
-    borderRadius: 15,
-    overflow: "hidden",
-  },
-  stopButton: {
-    marginTop: 25,
-    backgroundColor: "#EF4444",
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  stopText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 15,
-  },
-  notSupported: {
-    textAlign: "center",
-    color: "#6B7280",
-    fontSize: 16,
-    marginTop: 20,
   },
 });

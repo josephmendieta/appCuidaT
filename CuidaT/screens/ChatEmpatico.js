@@ -124,19 +124,31 @@ export default function ChatEmpatico({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Menú inferior */}
+        {/* ✅ Menú inferior funcional */}
         <View style={styles.menuInferior}>
-          <TouchableOpacity style={styles.menuItem}>
+          {/* Chat */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate("ChatEmpatico")}
+          >
             <Ionicons name="chatbubble-outline" size={24} color="#3da9fc" />
             <Text style={[styles.menuText, { color: "#3da9fc" }]}>Chat</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          {/* Emergencia → Línea de ayuda */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate("LineasAyuda")}
+          >
             <Ionicons name="alert-circle-outline" size={24} color="#A0A0A0" />
             <Text style={styles.menuText}>Emergencia</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          {/* Perfil */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate("")}
+          >
             <Ionicons name="person-outline" size={24} color="#A0A0A0" />
             <Text style={styles.menuText}>Perfil</Text>
           </TouchableOpacity>

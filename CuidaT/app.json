@@ -47,8 +47,7 @@
 
     "plugins": [
       "expo-router",
-      "expo-web-browser",
-      "expo-auth-session"
+      "expo-web-browser"
     ]
   }
 }
