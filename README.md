@@ -6,8 +6,8 @@ Esta guía te ayudará a configurar y ejecutar la aplicación en tu entorno de d
 
 Antes de comenzar, asegúrate de tener instalado lo siguiente:
 
-* **Node.js** (versión recomendada).
-* **npm** o **Yarn** (gestionadores de paquetes).
+* **Node.js** (versión LTS).
+* **npm** (gestionadores de paquetes).
 * **Expo Go** en tu dispositivo móvil (disponible en App Store y Google Play) si deseas probar la aplicación en un celular.
 
 ### ⚙️ Instalación
