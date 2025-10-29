@@ -1,3 +1,4 @@
+// screens/Registro.js
 import React, { useState } from "react";
 import {
   View,
@@ -7,9 +8,13 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, app } from "../firebaseConfig"; // asegúrate que firebaseConfig exporte `auth` y `app`
+
+const db = getFirestore(app);
 
 export default function Registro({ navigation }) {
   const [nombre, setNombre] = useState("");
@@ -20,6 +25,7 @@ export default function Registro({ navigation }) {
   const [checkTerminos, setCheckTerminos] = useState(false);
   const [checkPrivacidad, setCheckPrivacidad] = useState(false);
   const [correoDuplicado, setCorreoDuplicado] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const validarCorreo = (correo) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
   const contrasenasCoinciden =
@@ -61,14 +67,33 @@ export default function Registro({ navigation }) {
   const handleRegistro = async () => {
     if (!validarFormulario()) return;
 
+    setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, correo, password);
+      // 1) Crear usuario en Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, correo, password);
+      const user = userCredential.user;
+
+      // 2) Guardar datos adicionales en Firestore (colección 'usuarios')
+      //    el documento se llamará con el UID del usuario
+      const usuarioDocRef = doc(db, "usuarios", user.uid);
+      await setDoc(usuarioDocRef, {
+        nombre: nombre,
+        email: correo,
+        telefono: telefono || null,
+        createdAt: serverTimestamp(),
+        // puedes agregar aquí otros campos que quieras guardar por defecto
+      });
+
       setCorreoDuplicado(false);
+      setLoading(false);
       Alert.alert("Registro exitoso", "Tu cuenta ha sido creada correctamente.");
+      // Llevar al usuario a la pantalla de inicio de sesión o al flujo autenticado
       navigation.navigate("Inicio");
     } catch (error) {
-      console.error("Error al registrar:", error.code);
+      setLoading(false);
+      console.error("Error al registrar:", error);
 
+      // Mapear errores comunes
       if (error.code === "auth/email-already-in-use") {
         setCorreoDuplicado(true);
         Alert.alert(
@@ -180,14 +205,14 @@ export default function Registro({ navigation }) {
       </View>
 
       <TouchableOpacity
-        style={[styles.boton, !formularioValido && styles.botonDesactivado]}
+        style={[styles.boton, (!formularioValido || loading) && styles.botonDesactivado]}
         onPress={handleRegistro}
-        disabled={!formularioValido}
+        disabled={!formularioValido || loading}
       >
-        <Text style={styles.botonTexto}>Registrarme</Text>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.botonTexto}>Registrarme</Text>}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+      <TouchableOpacity onPress={() => navigation.navigate("Inicio")}>
         <Text style={styles.link}>¿Ya tienes una cuenta? Inicia sesión</Text>
       </TouchableOpacity>
     </ScrollView>

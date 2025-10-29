@@ -166,7 +166,10 @@ const Ayuda = ({ navigation }) => {
             <Text style={[styles.menuText, { color: "#A0A0A0" }]}>Emergencia</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate("Perfil")} 
+          >
             <Ionicons name="person-outline" size={24} color="#A0A0A0" />
             <Text style={styles.menuText}>Perfil</Text>
           </TouchableOpacity>
