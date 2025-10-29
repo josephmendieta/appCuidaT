@@ -14,14 +14,9 @@ Antes de comenzar, asegúrate de tener instalado lo siguiente:
 
 Sigue estos comandos en la terminal, dentro del directorio del proyecto, para preparar tu entorno:
 
-1.  **Instalar el CLI de Expo (opcional, pero recomendado):**
+1.  **Instalar las dependencias del proyecto:**
     ```bash
-    npm install -g expo-cli
-    ```
-
-2.  **Instalar las dependencias del proyecto:**
-    ```bash
-    npm install
+    npm install expo
     ```
 
 3.  **Instalar dependencias específicas de Expo:**
