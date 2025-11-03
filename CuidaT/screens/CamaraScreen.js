@@ -5,6 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  SafeAreaView,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -28,74 +30,90 @@ export default function CamaraScreen({ navigation }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Encabezado */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Análisis Facial</Text>
-      </View>
-
-      {/* Título y descripción */}
-      <Text style={styles.title}>Detecta tus emociones</Text>
-      <Text style={styles.description}>
-        Esta herramienta utilizará tu cámara para analizar tus expresiones
-        faciales y detectar emociones. Por ahora, este espacio muestra cómo se
-        vería el área de la cámara.
-      </Text>
-
-      {/* Marco donde iría la cámara */}
-      <View style={styles.cameraContainer}>
-        <Ionicons name="camera-outline" size={80} color="#9CA3AF" />
-        <Text style={styles.placeholderText}>Vista previa de cámara</Text>
-      </View>
-
-      {/* Tarjetas de emociones */}
-      <View style={styles.emotionsContainer}>
-        {emociones.map((e, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.emotionCard,
-              selectedEmotion === e.nombre && styles.emotionSelected,
-            ]}
-            onPress={() => setSelectedEmotion(e.nombre)}
-          >
-            <Ionicons
-              name={e.icono}
-              size={30}
-              color={selectedEmotion === e.nombre ? "#fff" : "#555"}
-            />
-            <Text
-              style={[
-                styles.emotionText,
-                selectedEmotion === e.nombre && { color: "#fff" },
-              ]}
-            >
-              {e.nombre}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Botón de análisis */}
-      <TouchableOpacity
-        style={[styles.startButton, !selectedEmotion && { opacity: 0.6 }]}
-        onPress={iniciarAnalisis}
-        disabled={!selectedEmotion}
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.startText}>Iniciar Análisis</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Encabezado */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={26} color="#000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Análisis Facial</Text>
+        </View>
+
+        {/* Título y descripción */}
+        <Text style={styles.title}>Detecta tus emociones</Text>
+        <Text style={styles.description}>
+          Esta herramienta utilizará tu cámara para analizar tus expresiones
+          faciales y detectar emociones. Por ahora, este espacio muestra cómo se
+          vería el área de la cámara.
+        </Text>
+
+        {/* Marco donde iría la cámara */}
+        <View style={styles.cameraContainer}>
+          <Ionicons name="camera-outline" size={80} color="#9CA3AF" />
+          <Text style={styles.placeholderText}>Vista previa de cámara</Text>
+        </View>
+
+        {/* Tarjetas de emociones */}
+        <View style={styles.emotionsContainer}>
+          {emociones.map((e, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.emotionCard,
+                selectedEmotion === e.nombre && styles.emotionSelected,
+              ]}
+              onPress={() => setSelectedEmotion(e.nombre)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={e.icono}
+                size={30}
+                color={selectedEmotion === e.nombre ? "#fff" : "#555"}
+              />
+              <Text
+                style={[
+                  styles.emotionText,
+                  selectedEmotion === e.nombre && { color: "#fff" },
+                ]}
+              >
+                {e.nombre}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Botón de análisis */}
+        <TouchableOpacity
+          style={[
+            styles.startButton,
+            !selectedEmotion && { opacity: 0.6 },
+          ]}
+          onPress={iniciarAnalisis}
+          disabled={!selectedEmotion}
+        >
+          <Text style={styles.startText}>Iniciar Análisis</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
+const { height } = Dimensions.get("window");
+
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
+  safeArea: {
+    flex: 1,
     backgroundColor: "#fff",
+  },
+  scrollContainer: {
     flexGrow: 1,
+    padding: 20,
+    minHeight: height,
+    backgroundColor: "#fff",
   },
   header: {
     flexDirection: "row",
@@ -121,7 +139,7 @@ const styles = StyleSheet.create({
   },
   cameraContainer: {
     width: "100%",
-    height: 220,
+    height: 240,
     borderRadius: 16,
     backgroundColor: "#f0f0f0",
     justifyContent: "center",

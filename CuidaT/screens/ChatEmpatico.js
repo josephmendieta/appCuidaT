@@ -50,7 +50,7 @@ export default function ChatEmpatico({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -63,7 +63,8 @@ export default function ChatEmpatico({ navigation }) {
         {/* Chat */}
         <ScrollView
           style={styles.chatContainer}
-          contentContainerStyle={{ paddingBottom: 80 }}
+          contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
+          showsVerticalScrollIndicator={false}
         >
           {messages.map((msg) => (
             <View
@@ -86,6 +87,7 @@ export default function ChatEmpatico({ navigation }) {
                   style={{
                     color: msg.sender === "user" ? "#fff" : "#000",
                     fontSize: 15,
+                    lineHeight: 21,
                   }}
                 >
                   {msg.text}
@@ -100,6 +102,7 @@ export default function ChatEmpatico({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="Escribe tu mensaje..."
+            placeholderTextColor="#999"
             value={input}
             onChangeText={setInput}
           />
@@ -124,18 +127,16 @@ export default function ChatEmpatico({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* ✅ Menú inferior funcional */}
+        {/* Menú inferior */}
         <View style={styles.menuInferior}>
-          {/* Chat */}
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => navigation.navigate("ChatEmpatico")}
           >
-            <Ionicons name="chatbubble-outline" size={24} color="#3da9fc" />
-            <Text style={[styles.menuText, { color: "#3da9fc" }]}>Chat</Text>
+            <Ionicons name="chatbubble" size={24} color="#3da9fc" />
+            <Text style={[styles.menuText, styles.activeText]}>Chat</Text>
           </TouchableOpacity>
 
-          {/* Emergencia → Línea de ayuda */}
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => navigation.navigate("LineasAyuda")}
@@ -144,7 +145,6 @@ export default function ChatEmpatico({ navigation }) {
             <Text style={styles.menuText}>Emergencia</Text>
           </TouchableOpacity>
 
-          {/* Perfil */}
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => navigation.navigate("Perfil")}
@@ -158,12 +158,18 @@ export default function ChatEmpatico({ navigation }) {
   );
 }
 
+/* 🎨 Estilos mejorados para iPhone 13 */
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   header: {
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 18,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
+    backgroundColor: "#fff",
   },
   headerTitle: {
     fontSize: 18,
@@ -173,33 +179,32 @@ const styles = StyleSheet.create({
   chatContainer: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingVertical: 10,
   },
   message: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 12,
-    maxWidth: "90%",
+    marginBottom: 14,
+    maxWidth: "85%",
   },
   userMsg: {
     alignSelf: "flex-end",
     backgroundColor: "#3da9fc",
-    borderRadius: 16,
-    padding: 10,
+    borderRadius: 18,
+    padding: 12,
     marginLeft: 50,
   },
   aiMsg: {
     alignSelf: "flex-start",
     backgroundColor: "#f1f1f1",
-    borderRadius: 16,
-    padding: 10,
+    borderRadius: 18,
+    padding: 12,
     flexDirection: "row",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
     backgroundColor: "#fff",
@@ -211,6 +216,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 10,
     fontSize: 15,
+    color: "#000",
   },
   iconButton: {
     marginLeft: 8,
@@ -224,16 +230,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: 14,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
     backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 3,
   },
   menuItem: {
     alignItems: "center",
+    justifyContent: "center",
   },
   menuText: {
     fontSize: 12,
     color: "#A0A0A0",
+    marginTop: 4,
+  },
+  activeText: {
+    color: "#3da9fc",
+    fontWeight: "600",
   },
 });

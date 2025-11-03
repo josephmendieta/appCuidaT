@@ -16,7 +16,6 @@ import ChatEmpatico from "./screens/ChatEmpatico";
 import CamaraScreen from "./screens/CamaraScreen";
 import LineasAyuda from "./screens/LineasAyuda";
 import Ayuda from "./screens/Ayuda";
-import DetalleAyuda from "./screens/DetalleAyuda.js";
 import Perfil from "./screens/Perfil.js";
 import ResumenPrivacidad from "./screens/ResumenPrivacidad.js";
 import Historial from "./screens/Historial";
@@ -108,10 +107,13 @@ function AppStack() {
         <Stack.Screen name="CamaraScreen" component={CamaraScreen} />
         <Stack.Screen name="LineasAyuda" component={LineasAyuda} />
         <Stack.Screen name="Ayuda" component={Ayuda} />
-        <Stack.Screen name="DetalleAyuda" component={DetalleAyuda} />
         <Stack.Screen name="Perfil" component={Perfil} />
         <Stack.Screen name="ResumenPrivacidad" component={ResumenPrivacidad} />
         <Stack.Screen name="Historial" component={Historial} />
+        <Stack.Screen name="Bienvenida" component={Bienvenida} />
+        <Stack.Screen name="Inicio" component={Inicio} />
+        <Stack.Screen name="Registro" component={Registro} />
+
       </Stack.Navigator>
     </InactivityProvider>
   );

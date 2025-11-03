@@ -1,5 +1,14 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  SafeAreaView,
+  Platform,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function Historial({ navigation }) {
@@ -24,7 +33,7 @@ export default function Historial({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeContainer}>
       {/* Encabezado */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -33,7 +42,12 @@ export default function Historial({ navigation }) {
         <Text style={styles.headerTitle}>Mi Historial</Text>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 100 }}>
+      {/* Contenido desplazable */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Sección 1: Resumen de interacciones */}
         <Text style={styles.sectionTitle}>Resumen de Interacciones</Text>
         <View style={styles.sectionCard}>
@@ -76,7 +90,7 @@ export default function Historial({ navigation }) {
         </View>
       </ScrollView>
 
-      {/* Menú inferior */}
+      {/* Menú inferior fijo */}
       <View style={styles.bottomNav}>
         <TouchableOpacity
           style={styles.navItem}
@@ -99,17 +113,42 @@ export default function Historial({ navigation }) {
           <Text style={[styles.navText, styles.navTextActive]}>Perfil</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 // --- Estilos ---
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F5F5", paddingTop: 50 },
-  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingBottom: 15 },
-  headerTitle: { fontSize: 20, fontWeight: "bold", marginLeft: 20 },
-  scrollView: { paddingHorizontal: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: "bold", color: "#333", marginTop: 20, marginBottom: 10 },
+  safeContainer: {
+    flex: 1,
+    backgroundColor: "#F5F5F5",
+    paddingTop: Platform.OS === "android" ? 40 : 0,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 15,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginLeft: 20,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 120, // 👈 deja espacio para el menú inferior
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 20,
+    marginBottom: 10,
+  },
   sectionCard: {
     backgroundColor: "#FFF",
     borderRadius: 15,
@@ -147,11 +186,7 @@ const styles = StyleSheet.create({
     borderTopColor: "#EEE",
     paddingVertical: 10,
     backgroundColor: "#FFF",
-    paddingBottom: 20,
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
+    paddingBottom: Platform.OS === "ios" ? 30 : 15, // 👈 margen extra para iPhone
   },
   navItem: { alignItems: "center" },
   navText: { fontSize: 12, color: "#999" },
