@@ -16,7 +16,17 @@
     },
 
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.josephmendieta.cuidat",
+      "infoPlist": {
+        "NSCameraUsageDescription": "CuidaT necesita acceder a la cámara para tomar o analizar imágenes si el usuario lo desea.",
+        "NSPhotoLibraryUsageDescription": "CuidaT necesita acceder a tus fotos para que puedas subir o compartir imágenes.",
+        "NSLocationWhenInUseUsageDescription": "CuidaT usa tu ubicación para ofrecerte información o asistencia cercana.",
+        "NSMicrophoneUsageDescription": "CuidaT necesita usar el micrófono para funciones de audio o notas de voz.",
+        "NSUserTrackingUsageDescription": "CuidaT puede usar tu ID de dispositivo para mejorar la experiencia del usuario.",
+        "NSRemindersUsageDescription": "CuidaT puede acceder a tus recordatorios para ayudarte a gestionar rutinas o notificaciones.",
+        "NSCalendarsUsageDescription": "CuidaT puede acceder a tu calendario si deseas registrar o programar sesiones."
+      }
     },
 
     "android": {
@@ -25,16 +35,12 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-
       "package": "com.josephmendieta.cuidat",
       "intentFilters": [
         {
           "action": "VIEW",
           "data": [
-            {
-              "scheme": "cuidat",
-              "host": "auth"
-            }
+            { "scheme": "cuidat", "host": "auth", "pathPrefix": "/" }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         }

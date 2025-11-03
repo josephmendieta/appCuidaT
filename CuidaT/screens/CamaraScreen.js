@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,11 +7,16 @@ import {
   ScrollView,
   SafeAreaView,
   Dimensions,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { CameraView, useCameraPermissions } from "expo-camera";
 
 export default function CamaraScreen({ navigation }) {
   const [selectedEmotion, setSelectedEmotion] = useState(null);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const cameraRef = useRef(null);
 
   const emociones = [
     { nombre: "Ansiedad", icono: "sad-outline" },
@@ -20,14 +25,46 @@ export default function CamaraScreen({ navigation }) {
     { nombre: "Felicidad", icono: "happy-outline" },
   ];
 
+  useEffect(() => {
+    if (!permission) {
+      requestPermission();
+    }
+  }, []);
+
   const iniciarAnalisis = () => {
     if (!selectedEmotion) {
       alert("Selecciona una emoción antes de iniciar el análisis.");
       return;
     }
     console.log("🎭 Emoción seleccionada:", selectedEmotion);
-    alert(`Analizando emoción: ${selectedEmotion}`);
+    Alert.alert("Análisis iniciado", `Detectando: ${selectedEmotion}`);
   };
+
+  if (!permission) {
+    return (
+      <View style={styles.permissionContainer}>
+        <Text>Cargando permisos...</Text>
+      </View>
+    );
+  }
+
+  if (!permission.granted) {
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={{ textAlign: "center", marginBottom: 10 }}>
+          Necesitamos permiso para acceder a tu cámara.
+        </Text>
+        <TouchableOpacity
+          style={styles.permissionButton}
+          onPress={requestPermission}
+        >
+          <Text style={{ color: "#fff", fontWeight: "600" }}>
+            Conceder permiso
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -47,14 +84,17 @@ export default function CamaraScreen({ navigation }) {
         <Text style={styles.title}>Detecta tus emociones</Text>
         <Text style={styles.description}>
           Esta herramienta utilizará tu cámara para analizar tus expresiones
-          faciales y detectar emociones. Por ahora, este espacio muestra cómo se
-          vería el área de la cámara.
+          faciales y detectar emociones.
         </Text>
 
-        {/* Marco donde iría la cámara */}
+        {/* Vista previa real de la cámara */}
         <View style={styles.cameraContainer}>
-          <Ionicons name="camera-outline" size={80} color="#9CA3AF" />
-          <Text style={styles.placeholderText}>Vista previa de cámara</Text>
+          <CameraView
+            style={StyleSheet.absoluteFillObject}
+            facing="front"
+            ref={cameraRef}
+            onCameraReady={() => setIsCameraReady(true)}
+          />
         </View>
 
         {/* Tarjetas de emociones */}
@@ -139,16 +179,13 @@ const styles = StyleSheet.create({
   },
   cameraContainer: {
     width: "100%",
-    height: 240,
+    height: 300,
     borderRadius: 16,
-    backgroundColor: "#f0f0f0",
+    overflow: "hidden",
+    backgroundColor: "#000",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 25,
-  },
-  placeholderText: {
-    color: "#9CA3AF",
-    marginTop: 10,
   },
   emotionsContainer: {
     flexDirection: "row",
@@ -186,5 +223,18 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 20,
+  },
+  permissionButton: {
+    backgroundColor: "#3da9fc",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
   },
 });
