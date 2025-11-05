@@ -1,8 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  Alert,
+  ActivityIndicator,
+  Image,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { auth, db } from "../firebaseConfig";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 export default function Perfil({ navigation }) {
   const [userData, setUserData] = useState(null);
@@ -55,27 +66,55 @@ export default function Perfil({ navigation }) {
   // 🔹 Cambiar estado de notificaciones
   const toggleNotificaciones = () => {
     setNotificaciones((prev) => !prev);
-    console.log(`🔔 Notificaciones ${!notificaciones ? "activadas" : "desactivadas"}`);
   };
 
-  // 🔹 Navegar
-  const handleHistorial = () => navigation.navigate("Historial");
-  const handlePrivacidad = () => navigation.navigate("ResumenPrivacidad");
+  // 🔹 Cambiar foto de perfil (base64)
+  const cambiarFoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permiso denegado", "Se necesita acceso a la galería para cambiar la foto de perfil.");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        base64: true,
+        allowsEditing: true,
+        quality: 0.5,
+      });
+
+      if (!result.canceled) {
+        const imagenBase64 = `data:image/jpeg;base64,${result.assets[0].base64}`;
+        const user = auth.currentUser;
+
+        if (user) {
+          const userRef = doc(db, "usuarios", user.uid);
+          await updateDoc(userRef, { fotoPerfil: imagenBase64 });
+
+          setUserData((prev) => ({ ...prev, fotoPerfil: imagenBase64 }));
+          Alert.alert("Foto actualizada", "Tu foto de perfil ha sido actualizada correctamente.");
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error al cambiar la foto:", error);
+      Alert.alert("Error", "No se pudo cambiar la foto de perfil.");
+    }
+  };
 
   // 🔹 Mostrar loader mientras carga
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
         <Text>Cargando perfil...</Text>
       </View>
     );
   }
 
-  // 🔹 Si no hay datos
   if (!userData) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={styles.loaderContainer}>
         <Text>No se encontraron datos del usuario.</Text>
       </View>
     );
@@ -94,7 +133,14 @@ export default function Perfil({ navigation }) {
       <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Imagen de perfil */}
         <View style={styles.profileImageContainer}>
-          <Ionicons name="person-circle-outline" size={100} color="#ccc" />
+          {userData.fotoPerfil ? (
+            <Image source={{ uri: userData.fotoPerfil }} style={styles.profileImage} />
+          ) : (
+            <Ionicons name="person-circle-outline" size={100} color="#ccc" />
+          )}
+          <TouchableOpacity onPress={cambiarFoto}>
+            <Text style={styles.changePhotoText}>Cambiar foto</Text>
+          </TouchableOpacity>
           <Text style={styles.userName}>{userData.nombre}</Text>
           <Text style={styles.userSubtitle}>Usuario de CuidaT</Text>
         </View>
@@ -111,11 +157,15 @@ export default function Perfil({ navigation }) {
           />
         </View>
 
-        {/* Bienestar y Privacidad */}
+        {/* Privacidad */}
         <Text style={styles.sectionTitle}>Bienestar y Privacidad</Text>
         <View style={styles.sectionCard}>
-          <OptionRow iconName="history" label="Historial de Bienestar" onPress={handleHistorial} />
-          <OptionRow iconName="shield-lock-outline" label="Privacidad de Datos" onPress={handlePrivacidad} />
+          <OptionRow iconName="history" label="Historial de Bienestar" onPress={() => navigation.navigate("Historial")} />
+          <OptionRow
+            iconName="shield-lock-outline"
+            label="Privacidad de Datos"
+            onPress={() => navigation.navigate("ResumenPrivacidad")}
+          />
         </View>
 
         {/* Configuración */}
@@ -136,24 +186,6 @@ export default function Perfil({ navigation }) {
           <OptionRow iconName="logout" label="Cerrar sesión" isDanger onPress={handleLogout} />
         </View>
       </ScrollView>
-
-      {/* Menú inferior */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("ChatEmpatico")}>
-          <Ionicons name="chatbubbles-outline" size={24} color="#999" />
-          <Text style={styles.navText}>Chat</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("LineasAyuda")}>
-          <Ionicons name="alert-circle-outline" size={24} color="#999" />
-          <Text style={styles.navText}>Emergencia</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person" size={24} color="#007AFF" />
-          <Text style={[styles.navText, styles.navTextActive]}>Perfil</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -182,10 +214,13 @@ const OptionRow = ({ iconName, label, isDanger = false, onPress, customRight }) 
 /* 🔸 ESTILOS 🔸 */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F5F5F5", paddingTop: 50 },
+  loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingBottom: 15 },
   headerTitle: { fontSize: 20, fontWeight: "bold", marginLeft: 20 },
   scrollView: { paddingHorizontal: 20 },
   profileImageContainer: { alignItems: "center", marginBottom: 20 },
+  profileImage: { width: 100, height: 100, borderRadius: 50 },
+  changePhotoText: { color: "#007AFF", marginTop: 8, fontWeight: "500" },
   userName: { fontSize: 18, fontWeight: "600", color: "#000", marginTop: 10 },
   userSubtitle: { fontSize: 14, color: "#777" },
   sectionTitle: { fontSize: 16, fontWeight: "bold", color: "#333", marginTop: 20, marginBottom: 10 },
@@ -199,31 +234,29 @@ const styles = StyleSheet.create({
     elevation: 2,
     marginBottom: 10,
   },
-  infoRow: { flexDirection: "row", alignItems: "center", marginBottom: 15, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: "#EEE" },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEE",
+  },
   infoIcon: { marginRight: 15 },
   infoTextContainer: { flex: 1 },
   infoLabel: { fontSize: 14, color: "#999", marginBottom: 2 },
   infoValue: { fontSize: 16, color: "#333", fontWeight: "500" },
-  optionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: "#EEE" },
+  optionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEE",
+  },
   optionContent: { flexDirection: "row", alignItems: "center" },
   optionIcon: { marginRight: 15 },
   optionLabel: { fontSize: 16, color: "#333" },
   dangerOption: { borderBottomWidth: 0 },
   dangerLabel: { color: "#E53935", fontWeight: "500" },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    borderTopWidth: 1,
-    borderTopColor: "#EEE",
-    paddingVertical: 10,
-    backgroundColor: "#FFF",
-    paddingBottom: 20,
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  navItem: { alignItems: "center" },
-  navText: { fontSize: 12, color: "#999" },
-  navTextActive: { color: "#007AFF", fontWeight: "600" },
 });
