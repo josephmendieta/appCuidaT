@@ -9,12 +9,12 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  Platform,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, app } from "../firebaseConfig"; // asegúrate que firebaseConfig exporte `auth` y `app`
-
-const db = getFirestore(app);
+import { auth, app, db } from "../firebaseConfig";
 
 export default function Registro({ navigation }) {
   const [nombre, setNombre] = useState("");
@@ -22,6 +22,9 @@ export default function Registro({ navigation }) {
   const [telefono, setTelefono] = useState("");
   const [password, setPassword] = useState("");
   const [confirmarPassword, setConfirmarPassword] = useState("");
+  const [fechaNacimiento, setFechaNacimiento] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
+  const [genero, setGenero] = useState("");
   const [checkTerminos, setCheckTerminos] = useState(false);
   const [checkPrivacidad, setCheckPrivacidad] = useState(false);
   const [correoDuplicado, setCorreoDuplicado] = useState(false);
@@ -33,34 +36,26 @@ export default function Registro({ navigation }) {
   const passwordValidaLongitud = password.length >= 6;
 
   const validarFormulario = () => {
-    if (!nombre || !correo || !password || !confirmarPassword) {
+    if (!nombre || !correo || !password || !confirmarPassword || !genero || !fechaNacimiento) {
       Alert.alert("Campos incompletos", "Por favor llena todos los campos obligatorios.");
       return false;
     }
-
     if (!validarCorreo(correo)) {
       Alert.alert("Correo inválido", "Por favor ingresa un correo electrónico válido.");
       return false;
     }
-
     if (!passwordValidaLongitud) {
-      Alert.alert(
-        "Contraseña débil",
-        "La contraseña debe tener al menos 6 caracteres."
-      );
+      Alert.alert("Contraseña débil", "La contraseña debe tener al menos 6 caracteres.");
       return false;
     }
-
-    if (password !== confirmarPassword) {
+    if (!contrasenasCoinciden) {
       Alert.alert("Error", "Las contraseñas no coinciden.");
       return false;
     }
-
     if (!checkTerminos || !checkPrivacidad) {
       Alert.alert("Aviso", "Debes aceptar los Términos y la Política de Privacidad.");
       return false;
     }
-
     return true;
   };
 
@@ -69,37 +64,38 @@ export default function Registro({ navigation }) {
 
     setLoading(true);
     try {
-      // 1) Crear usuario en Firebase Auth
+      // 1️⃣ Crear el usuario en Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, correo, password);
       const user = userCredential.user;
 
-      // 2) Guardar datos adicionales en Firestore (colección 'usuarios')
-      //    el documento se llamará con el UID del usuario
+      // 2️⃣ Crear documento en Firestore con el mismo UID
       const usuarioDocRef = doc(db, "usuarios", user.uid);
       await setDoc(usuarioDocRef, {
-        nombre: nombre,
+        uid: user.uid,
+        nombre,
         email: correo,
         telefono: telefono || null,
-        createdAt: serverTimestamp(),
-        // puedes agregar aquí otros campos que quieras guardar por defecto
+        fechaNacimiento: fechaNacimiento
+          ? fechaNacimiento.toISOString().split("T")[0]
+          : null, // formato YYYY-MM-DD
+        genero: genero || null,
+        fechaRegistro: serverTimestamp(),
       });
 
+      // 3️⃣ Limpieza y feedback visual
       setCorreoDuplicado(false);
       setLoading(false);
-      Alert.alert("Registro exitoso", "Tu cuenta ha sido creada correctamente.");
-      // Llevar al usuario a la pantalla de inicio de sesión o al flujo autenticado
+      Alert.alert("✅ Registro exitoso", "Tu cuenta ha sido creada correctamente.");
       navigation.navigate("Inicio");
+
     } catch (error) {
       setLoading(false);
       console.error("Error al registrar:", error);
 
-      // Mapear errores comunes
+      // 4️⃣ Manejo de errores más claros
       if (error.code === "auth/email-already-in-use") {
         setCorreoDuplicado(true);
-        Alert.alert(
-          "Correo en uso",
-          "El correo ingresado ya está registrado. Por favor inicia sesión o usa otro correo."
-        );
+        Alert.alert("Correo en uso", "El correo ingresado ya está registrado.");
       } else if (error.code === "auth/invalid-email") {
         Alert.alert("Correo inválido", "Por favor ingresa un correo electrónico válido.");
       } else if (error.code === "auth/weak-password") {
@@ -113,13 +109,15 @@ export default function Registro({ navigation }) {
   const formularioValido =
     nombre &&
     correo &&
+    validarCorreo(correo) &&
     password &&
     confirmarPassword &&
     contrasenasCoinciden &&
+    passwordValidaLongitud &&
+    genero &&
+    fechaNacimiento &&
     checkTerminos &&
-    checkPrivacidad &&
-    validarCorreo(correo) &&
-    passwordValidaLongitud;
+    checkPrivacidad;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -143,16 +141,14 @@ export default function Registro({ navigation }) {
         value={correo}
         onChangeText={(text) => {
           setCorreo(text);
-          setCorreoDuplicado(false); // se limpia si el usuario cambia el correo
+          setCorreoDuplicado(false);
         }}
       />
       {correo.length > 0 && !validarCorreo(correo) && (
         <Text style={styles.errorText}>Correo inválido.</Text>
       )}
       {correoDuplicado && (
-        <Text style={styles.errorText}>
-          Este correo ya está registrado. Usa otro o inicia sesión.
-        </Text>
+        <Text style={styles.errorText}>Este correo ya está registrado.</Text>
       )}
 
       <TextInput
@@ -163,11 +159,45 @@ export default function Registro({ navigation }) {
         onChangeText={setTelefono}
       />
 
+      <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.input}>
+        <Text style={{ color: fechaNacimiento ? "#000" : "#999" }}>
+          {fechaNacimiento
+            ? `Fecha de nacimiento: ${fechaNacimiento.toLocaleDateString()}`
+            : "Selecciona tu fecha de nacimiento *"}
+        </Text>
+      </TouchableOpacity>
+
+      {showPicker && (
+        <DateTimePicker
+          value={fechaNacimiento}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, selectedDate) => {
+            setShowPicker(false);
+            if (selectedDate) setFechaNacimiento(selectedDate);
+          }}
+        />
+      )}
+
+      <Text style={styles.subtitle}>Género *</Text>
+      <View style={styles.genderContainer}>
+        {["Masculino", "Femenino", "Otro"].map((g) => (
+          <TouchableOpacity
+            key={g}
+            style={[styles.genderButton, genero === g && styles.genderSelected]}
+            onPress={() => setGenero(g)}
+          >
+            <Text style={genero === g ? styles.genderTextSelected : styles.genderText}>
+              {g}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       <TextInput
         style={[
           styles.input,
-          confirmarPassword.length > 0 && !passwordValidaLongitud && styles.inputError,
-          confirmarPassword.length > 0 && !contrasenasCoinciden && styles.inputError,
+          password.length > 0 && !passwordValidaLongitud && styles.inputError,
         ]}
         placeholder="Contraseña *"
         secureTextEntry
@@ -175,7 +205,7 @@ export default function Registro({ navigation }) {
         onChangeText={setPassword}
       />
       {password.length > 0 && !passwordValidaLongitud && (
-        <Text style={styles.errorText}>La contraseña debe tener al menos 6 caracteres.</Text>
+        <Text style={styles.errorText}>Debe tener al menos 6 caracteres.</Text>
       )}
 
       <TextInput
@@ -195,12 +225,12 @@ export default function Registro({ navigation }) {
       <View style={styles.checkboxContainer}>
         <TouchableOpacity onPress={() => setCheckTerminos(!checkTerminos)} style={styles.checkbox}>
           <View style={[styles.box, checkTerminos && styles.boxChecked]} />
-          <Text style={styles.checkboxText}>Acepto los Términos de Uso</Text>
+          <Text>Acepto los Términos de Uso</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => setCheckPrivacidad(!checkPrivacidad)} style={styles.checkbox}>
           <View style={[styles.box, checkPrivacidad && styles.boxChecked]} />
-          <Text style={styles.checkboxText}>Acepto la Política de Privacidad</Text>
+          <Text>Acepto la Política de Privacidad</Text>
         </TouchableOpacity>
       </View>
 
@@ -209,7 +239,11 @@ export default function Registro({ navigation }) {
         onPress={handleRegistro}
         disabled={!formularioValido || loading}
       >
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.botonTexto}>Registrarme</Text>}
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.botonTexto}>Registrarme</Text>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Inicio")}>
@@ -240,6 +274,35 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
   },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 8,
+  },
+  genderContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  genderButton: {
+    flex: 1,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: "#0066cc",
+    borderRadius: 10,
+    padding: 10,
+    alignItems: "center",
+  },
+  genderSelected: {
+    backgroundColor: "#0066cc",
+  },
+  genderText: {
+    color: "#0066cc",
+  },
+  genderTextSelected: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
   inputError: {
     borderColor: "#ff4d4d",
   },
@@ -267,9 +330,6 @@ const styles = StyleSheet.create({
   },
   boxChecked: {
     backgroundColor: "#0066cc",
-  },
-  checkboxText: {
-    fontSize: 15,
   },
   boton: {
     backgroundColor: "#0066cc",
