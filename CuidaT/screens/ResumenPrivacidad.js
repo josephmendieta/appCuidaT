@@ -32,7 +32,7 @@ const ResumenPrivacidad = ({ navigation }) => {
     // Aquí puedes añadir la lógica para cerrar el modal o navegar a la siguiente pantalla
     console.log('Botón Entendido presionado');
     // Ejemplo de navegación si estás usando React Navigation
-    // navigation.goBack(); 
+    navigation.goBack(); 
   };
 
   const handleFullPolicyPress = () => {

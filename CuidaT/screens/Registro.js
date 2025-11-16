@@ -27,17 +27,17 @@ export default function Registro({ navigation }) {
   const [showPicker, setShowPicker] = useState(false);
   const [genero, setGenero] = useState("");
   const [checkTerminos, setCheckTerminos] = useState(false);
-  const [checkPrivacidad, setCheckPrivacidad] = useState(false);
   const [correoDuplicado, setCorreoDuplicado] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [fotoPerfil, setFotoPerfil] = useState(null); // 🔹 Nueva variable
+  const [fotoPerfil, setFotoPerfil] = useState(null);
 
   // ---- Validaciones ----
   const validarCorreo = (correo) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
-  const contrasenasCoinciden = password && confirmarPassword && password === confirmarPassword;
+  const contrasenasCoinciden =
+    password && confirmarPassword && password === confirmarPassword;
   const passwordValidaLongitud = password.length >= 6;
 
-  // 🔹 Seleccionar imagen
+  // Seleccionar imagen
   const elegirFoto = async () => {
     const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permiso.granted) {
@@ -59,33 +59,28 @@ export default function Registro({ navigation }) {
   };
 
   const validarFormulario = () => {
-    // revisa campos obligatorios
     if (!nombre || !correo || !password || !confirmarPassword || !genero || !fechaNacimiento) {
       Alert.alert("Campos incompletos", "Por favor llena todos los campos obligatorios.");
       return false;
     }
 
-    // formato correo
     if (!validarCorreo(correo)) {
-      Alert.alert("Correo inválido", "Por favor ingresa un correo electrónico válido.");
+      Alert.alert("Correo inválido", "Por favor ingresa un correo válido.");
       return false;
     }
 
-    // longitud contraseña
     if (!passwordValidaLongitud) {
-      Alert.alert("Contraseña débil", "La contraseña debe tener al menos 6 caracteres.");
+      Alert.alert("Contraseña débil", "Debe tener al menos 6 caracteres.");
       return false;
     }
 
-    // coincidencia contraseñas
     if (!contrasenasCoinciden) {
       Alert.alert("Error", "Las contraseñas no coinciden.");
       return false;
     }
 
-    // checkboxes
-    if (!checkTerminos || !checkPrivacidad) {
-      Alert.alert("Aviso", "Debes aceptar los Términos y la Política de Privacidad.");
+    if (!checkTerminos) {
+      Alert.alert("Aviso", "Debes aceptar los Términos de Uso.");
       return false;
     }
 
@@ -97,7 +92,11 @@ export default function Registro({ navigation }) {
 
     setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, correo, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        correo,
+        password
+      );
       const user = userCredential.user;
 
       const usuarioDocRef = doc(db, "usuarios", user.uid);
@@ -106,29 +105,31 @@ export default function Registro({ navigation }) {
         nombre,
         email: correo,
         telefono: telefono || null,
-        fechaNacimiento: fechaNacimiento ? fechaNacimiento.toISOString().split("T")[0] : null,
+        fechaNacimiento: fechaNacimiento
+          ? fechaNacimiento.toISOString().split("T")[0]
+          : null,
         genero: genero || null,
         fechaRegistro: serverTimestamp(),
-        fotoPerfil: fotoPerfil || null, // 🔹 Guarda la imagen base64
+        fotoPerfil: fotoPerfil || null,
       });
 
       setCorreoDuplicado(false);
       setLoading(false);
-      Alert.alert("✅ Registro exitoso", "Tu cuenta ha sido creada correctamente.");
+      Alert.alert("✅ Registro exitoso", "Tu cuenta ha sido creada.");
       navigation.navigate("Inicio");
-
     } catch (error) {
       setLoading(false);
-      console.error("Error al registrar:", error);
+      console.error("Error:", error);
+
       if (error.code === "auth/email-already-in-use") {
         setCorreoDuplicado(true);
-        Alert.alert("Correo en uso", "El correo ingresado ya está registrado.");
+        Alert.alert("Correo en uso", "Ese correo ya está registrado.");
       } else if (error.code === "auth/invalid-email") {
-        Alert.alert("Correo inválido", "Por favor ingresa un correo electrónico válido.");
+        Alert.alert("Correo inválido", "Ingresa un correo válido.");
       } else if (error.code === "auth/weak-password") {
         Alert.alert("Contraseña débil", "Debe tener al menos 6 caracteres.");
       } else {
-        Alert.alert("Error", "No se pudo completar el registro. Intenta nuevamente.");
+        Alert.alert("Error", "No se pudo completar el registro.");
       }
     }
   };
@@ -143,14 +144,13 @@ export default function Registro({ navigation }) {
     passwordValidaLongitud &&
     genero &&
     fechaNacimiento &&
-    checkTerminos &&
-    checkPrivacidad;
+    checkTerminos;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Crear cuenta</Text>
 
-      {/* 🔹 FOTO DE PERFIL */}
+      {/* FOTO DE PERFIL */}
       <TouchableOpacity onPress={elegirFoto} style={styles.fotoContainer}>
         {fotoPerfil ? (
           <Image source={{ uri: fotoPerfil }} style={styles.foto} />
@@ -159,7 +159,7 @@ export default function Registro({ navigation }) {
         )}
       </TouchableOpacity>
 
-      {/* 🔹 CAMPOS */}
+      {/* CAMPOS */}
       <TextInput
         style={styles.input}
         placeholder="Nombre completo *"
@@ -196,9 +196,9 @@ export default function Registro({ navigation }) {
         onChangeText={setTelefono}
       />
 
-      {/* 🔹 Fecha */}
+      {/* Fecha */}
       <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.input}>
-        <Text style={{ color: fechaNacimiento ? "#000" : "#999" }}>
+        <Text style={{ color: "#000" }}>
           {`Fecha de nacimiento: ${fechaNacimiento.toLocaleDateString()}`}
         </Text>
       </TouchableOpacity>
@@ -214,34 +214,55 @@ export default function Registro({ navigation }) {
         />
       )}
 
-      {/* 🔹 Género */}
+      {/* Género */}
       <Text style={styles.subtitle}>Género *</Text>
       <View style={styles.genderContainer}>
         {["Masculino", "Femenino", "Otro"].map((g) => (
           <TouchableOpacity
             key={g}
-            style={[styles.genderButton, genero === g && styles.genderSelected]}
+            style={[
+              styles.genderButton,
+              genero === g && styles.genderSelected,
+            ]}
             onPress={() => setGenero(g)}
           >
-            <Text style={genero === g ? styles.genderTextSelected : styles.genderText}>{g}</Text>
+            <Text
+              style={
+                genero === g ? styles.genderTextSelected : styles.genderText
+              }
+            >
+              {g}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* 🔹 Contraseñas */}
+      {/* Contraseñas */}
       <TextInput
-        style={[styles.input, password.length > 0 && !passwordValidaLongitud && styles.inputError]}
+        style={[
+          styles.input,
+          password.length > 0 &&
+            !passwordValidaLongitud &&
+            styles.inputError,
+        ]}
         placeholder="Contraseña *"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
       {password.length > 0 && !passwordValidaLongitud && (
-        <Text style={styles.errorText}>La contraseña debe tener al menos 6 caracteres.</Text>
+        <Text style={styles.errorText}>
+          La contraseña debe tener al menos 6 caracteres.
+        </Text>
       )}
 
       <TextInput
-        style={[styles.input, confirmarPassword.length > 0 && !contrasenasCoinciden && styles.inputError]}
+        style={[
+          styles.input,
+          confirmarPassword.length > 0 &&
+            !contrasenasCoinciden &&
+            styles.inputError,
+        ]}
         placeholder="Confirmar contraseña *"
         secureTextEntry
         value={confirmarPassword}
@@ -251,25 +272,31 @@ export default function Registro({ navigation }) {
         <Text style={styles.errorText}>Las contraseñas no coinciden.</Text>
       )}
 
-      {/* 🔹 Checkboxes */}
+      {/* ÚNICO CHECKBOX */}
       <View style={styles.checkboxContainer}>
-        <TouchableOpacity onPress={() => setCheckTerminos(!checkTerminos)} style={styles.checkbox}>
+        <TouchableOpacity
+          onPress={() => setCheckTerminos(!checkTerminos)}
+          style={styles.checkbox}
+        >
           <View style={[styles.box, checkTerminos && styles.boxChecked]} />
           <Text>Acepto los Términos de Uso</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setCheckPrivacidad(!checkPrivacidad)} style={styles.checkbox}>
-          <View style={[styles.box, checkPrivacidad && styles.boxChecked]} />
-          <Text>Acepto la Política de Privacidad</Text>
-        </TouchableOpacity>
       </View>
 
-      {/* 🔹 Botón */}
+      {/* Botón */}
       <TouchableOpacity
-        style={[styles.boton, (!formularioValido || loading) && styles.botonDesactivado]}
+        style={[
+          styles.boton,
+          (!formularioValido || loading) && styles.botonDesactivado,
+        ]}
         onPress={handleRegistro}
         disabled={!formularioValido || loading}
       >
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.botonTexto}>Registrarme</Text>}
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.botonTexto}>Registrarme</Text>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Inicio")}>

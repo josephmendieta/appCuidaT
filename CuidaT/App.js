@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
-import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,7 +11,6 @@ import { auth } from "./firebaseConfig";
 import Bienvenida from "./screens/Bienvenida";
 import Inicio from "./screens/Inicio";
 import Registro from "./screens/Registro";
-import ConfPrivacidad from "./screens/confPrivacidad";
 import ChatEmpatico from "./screens/ChatEmpatico";
 import CamaraScreen from "./screens/CamaraScreen";
 import LineasAyuda from "./screens/LineasAyuda";
@@ -20,35 +19,24 @@ import Perfil from "./screens/Perfil.js";
 import ResumenPrivacidad from "./screens/ResumenPrivacidad.js";
 import Historial from "./screens/Historial";
 
-// Contexto de inactividad
+// Contexto
 import { InactivityProvider } from "./context/InactivityContext";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 
-// 🔹 Tabs principales (una especie de menú inferior)
-function AppTabs() {
-  const navigation = useNavigation();
-
+// 🔹 Tabs principales (aquí ChatEmpatico es la pantalla inicial)
+function AppTabs({ navigation, route }) {
   return (
     <Tab.Navigator
+      initialRouteName="ChatEmpatico"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#3da9fc",
         tabBarInactiveTintColor: "#888",
       }}
     >
-      <Tab.Screen
-        name="Privacidad"
-        component={ConfPrivacidad}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="lock-closed-outline" color={color} size={size} />
-          ),
-        }}
-      />
-
       <Tab.Screen
         name="Cámara"
         component={CamaraScreen}
@@ -59,36 +47,30 @@ function AppTabs() {
         }}
       />
 
-      {/* 🔹 Tab especial que redirige al ChatEmpatico */}
       <Tab.Screen
-        name="Chat"
-        component={ConfPrivacidad} // componente “dummy”
+        name="ChatEmpatico"
+        component={ChatEmpatico}
         options={{
+          title: "Chat",
+          tabBarStyle: { display: "none" }, // 👈 SE OCULTA AQUÍ — NO EN EL NAVIGATOR
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubble-ellipses-outline" color={color} size={size} />
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              color={color}
+              size={size}
+            />
           ),
         }}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault(); // evita que cambie de tab
-            navigation.navigate("ChatEmpatico"); // navega al screen real
-          },
-        }}
       />
-      {/* 🔹 Nuevo Tab para Emergencia */}
+
       <Tab.Screen
-        name="Emergencia"
-        component={ConfPrivacidad} // placeholder igual que el Chat
+        name="LineasAyuda"
+        component={LineasAyuda}
         options={{
+          title: "Emergencia",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="warning-outline" color={color} size={size} />
           ),
-        }}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.navigate("LineasAyuda"); // va al screen real
-          },
         }}
       />
     </Tab.Navigator>
@@ -96,16 +78,19 @@ function AppTabs() {
 }
 
 
-// 🔹 Stack principal (donde existe ChatEmpatico)
+// 🔹 Stack principal para usuarios autenticados
 function AppStack() {
   return (
     <InactivityProvider>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        // 🟢 ChatEmpatico será la primera pantalla porque es la ruta inicial
+        // de MainTabs, que a su vez es la ruta inicial de AppStack.
+        initialRouteName="MainTabs"
+        screenOptions={{ headerShown: false }}
+      >
         <Stack.Screen name="MainTabs" component={AppTabs} />
-        <Stack.Screen name="ConfPrivacidad" component={ConfPrivacidad} />
-        <Stack.Screen name="ChatEmpatico" component={ChatEmpatico} />
-        <Stack.Screen name="CamaraScreen" component={CamaraScreen} />
-        <Stack.Screen name="LineasAyuda" component={LineasAyuda} />
+
+        {/* Otras pantallas */}
         <Stack.Screen name="Ayuda" component={Ayuda} />
         <Stack.Screen name="Perfil" component={Perfil} />
         <Stack.Screen name="ResumenPrivacidad" component={ResumenPrivacidad} />
@@ -113,17 +98,16 @@ function AppStack() {
         <Stack.Screen name="Bienvenida" component={Bienvenida} />
         <Stack.Screen name="Inicio" component={Inicio} />
         <Stack.Screen name="Registro" component={Registro} />
-
       </Stack.Navigator>
     </InactivityProvider>
   );
 }
 
 
-// 🔹 Flujo de autenticación
+// 🔹 Flujo de autenticación (NO toca ChatEmpatico)
 function AuthStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName="Bienvenida" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Bienvenida" component={Bienvenida} />
       <Stack.Screen name="Inicio" component={Inicio} />
       <Stack.Screen name="Registro" component={Registro} />
