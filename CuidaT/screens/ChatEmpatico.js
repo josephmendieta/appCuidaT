@@ -23,21 +23,44 @@ export default function ChatEmpatico({ navigation }) {
   const [input, setInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
+
     const newMessage = { id: Date.now(), sender: "user", text: input };
     setMessages([...messages, newMessage]);
+
+    const userMsg = input;
     setInput("");
 
-    // Simular respuesta IA
-    setTimeout(() => {
+    try {
+      const resp = await fetch("https://us-central1-TU_PROYECTO.cloudfunctions.net/cuidatChat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userMsg,
+          emocion: "ansiedad" // si quieres conectar con la cámara luego
+        }),
+      });
+
+      const data = await resp.json();
+
       const aiResponse = {
         id: Date.now() + 1,
         sender: "ia",
-        text: "Entiendo. A veces, la vida puede ser así. ¿Hay algo en particular que te esté causando este sentimiento?",
+        text: data.respuesta,
       };
+
       setMessages((prev) => [...prev, aiResponse]);
-    }, 1200);
+    } catch (e) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          sender: "ia",
+          text: "Lo siento, tuve un problema para responder. ¿Intentamos de nuevo?",
+        },
+      ]);
+    }
   };
 
   const handleVoiceInput = () => {
