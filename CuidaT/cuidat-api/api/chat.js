@@ -31,14 +31,15 @@ Termina con una frase positiva.
         },
         {
           role: "user",
-          content: `Mensaje: ${message}. Emoción detectada: ${emocion || "ninguna"}`,
-        },
-      ],
+          content: `Mensaje: ${message}. Emoción: ${emocion || "ninguna"}`,
+        }
+      ]
     });
 
     res.status(200).json({
-      respuesta: completion.choices[0].message.content,
+      respuesta: completion.choices[0].message.content
     });
+    
   } catch (err) {
     console.error("Error IA:", err);
     res.status(500).json({ error: "Error con CuidaT IA" });

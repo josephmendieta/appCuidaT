@@ -33,23 +33,23 @@ export default function ChatEmpatico({ navigation }) {
     setInput("");
 
     try {
-      const resp = await fetch("https://us-central1-TU_PROYECTO.cloudfunctions.net/cuidatChat", {
+
+      const resp = await fetch("https://cuidat-api.vercel.app/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: userMsg,
-          emocion: "ansiedad" // si quieres conectar con la cámara luego
+          emocion: "ansiedad"
         }),
       });
 
       const data = await resp.json();
 
       const aiResponse = {
-        id: Date.now() + 1,
+        id: Date.now(),
         sender: "ia",
         text: data.respuesta,
       };
-
       setMessages((prev) => [...prev, aiResponse]);
     } catch (e) {
       setMessages((prev) => [
