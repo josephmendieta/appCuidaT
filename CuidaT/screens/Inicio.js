@@ -52,13 +52,13 @@ export default function Inicio({ navigation }) {
       </View>
 
       {/* LOGO CUIDAT */}
-      {/* ⚠️ Nota: La importación de imágenes con 'require("../assets/images/...'
-          debe ser una ruta válida en tu proyecto de Expo. */}
-      <Image
-        source={{ uri: "https://placehold.co/150x150/3da9fc/fff?text=LOGO" }}
-        style={styles.logo}
-        resizeMode="contain"
-      />
+      <View style={styles.logoContainer}>
+        <Image
+          source={require("../assets/images/logoCuidaT-removebg-preview.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
 
       {/* Inputs */}
       <TextInput
@@ -120,11 +120,14 @@ const styles = StyleSheet.create({
   },
 
   /* LOGO */
+  logoContainer: {
+    marginBottom: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   logo: {
     width: width * 0.55,
     height: width * 0.55,
-    marginBottom: 20,
-    marginTop: -20, // Se ajusta para que quede visualmente centrado
   },
 
   input: {
