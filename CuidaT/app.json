@@ -8,13 +8,11 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.josephmendieta.cuidat",
@@ -28,7 +26,6 @@
         "NSCalendarsUsageDescription": "CuidaT puede acceder a tu calendario si deseas registrar o programar sesiones."
       }
     },
-
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -40,20 +37,26 @@
         {
           "action": "VIEW",
           "data": [
-            { "scheme": "cuidat", "host": "auth", "pathPrefix": "/" }
+            {
+              "scheme": "cuidat",
+              "host": "auth",
+              "pathPrefix": "/"
+            }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
-
     "web": {
       "favicon": "./assets/favicon.png"
     },
-
     "plugins": [
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-speech-recognition"
     ]
   }
 }

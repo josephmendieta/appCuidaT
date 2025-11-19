@@ -15,6 +15,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { auth } from "../firebaseConfig";
 
+// ❌ Voz desactivada
+// import * as SpeechRecognition from "expo-speech-recognition";
+
 export default function ChatEmpatico({ navigation }) {
   const [messages, setMessages] = useState([
     {
@@ -26,7 +29,10 @@ export default function ChatEmpatico({ navigation }) {
   const [input, setInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
 
-  const handleSend = async () => {
+  /* ============================================================
+     ✨ ENVÍO DE MENSAJE (texto manual o texto desde audio)
+     ============================================================ */
+  const handleSend = async (textoReconocido = null) => {
     const palabrasRiesgo = [
       "suicidio", "suicidarme", "matarme", "quitarme la vida",
       "morirme", "me quiero morir", "no quiero vivir",
@@ -37,20 +43,19 @@ export default function ChatEmpatico({ navigation }) {
       return palabrasRiesgo.some((p) => texto.toLowerCase().includes(p));
     };
 
-    if (!input.trim()) return;
+    const mensaje = textoReconocido ? textoReconocido : input.trim();
+    if (!mensaje) return;
 
-    const userMsg = input.trim();
-    setInput("");
+    if (!textoReconocido) setInput("");
 
-    const newMessage = { id: Date.now(), sender: "user", text: userMsg };
+    const newMessage = { id: Date.now(), sender: "user", text: mensaje };
     setMessages((prev) => [...prev, newMessage]);
 
-    // Registrar interacción
     registrarInteraccion("chat", "Conversación usuario → IA");
 
     // ⚠️ Riesgo detectado
-    if (contieneRiesgo(userMsg)) {
-      registrarInteraccion("alerta", `Riesgo detectado: ${userMsg}`);
+    if (contieneRiesgo(mensaje)) {
+      registrarInteraccion("alerta", `Riesgo detectado: ${mensaje}`);
       navigation.navigate("CamaraScreen", { motivo: "riesgo" });
       return;
     }
@@ -60,7 +65,7 @@ export default function ChatEmpatico({ navigation }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userMessage: userMsg,
+          userMessage: mensaje,
           emocion: "ansiedad"
         }),
       });
@@ -88,15 +93,63 @@ export default function ChatEmpatico({ navigation }) {
     }
   };
 
+  /* ============================================================
+     🎤 RECONOCIMIENTO DE VOZ → DESACTIVADO
+     ============================================================ */
+  /*
+  const handleVoiceInput = async () => {
+    try {
+      const available = await SpeechRecognition.isAvailableAsync();
+      if (!available) {
+        console.log("❌ Reconocimiento de voz no disponible.");
+        return;
+      }
+
+      setIsRecording(true);
+      console.log("🎤 Escuchando...");
+
+      const result = await SpeechRecognition.startAsync({
+        language: "es-ES",
+        interimResults: false,
+      });
+
+      setIsRecording(false);
+
+      if (result && result.length > 0) {
+        const texto = result[0]; // primer resultado
+        console.log("📝 Texto detectado:", texto);
+        handleSend(texto);
+      }
+
+    } catch (error) {
+      console.log("❌ Error reconociendo voz:", error);
+      setIsRecording(false);
+    }
+  };
+  */
+
+  // Ahora el mic solo muestra un mensaje bonito
   const handleVoiceInput = () => {
-    setIsRecording((prev) => !prev);
-    console.log(isRecording ? "🛑 Grabación detenida" : "🎤 Grabando voz...");
+    setIsRecording(false);
+    console.log("🎤 Voz deshabilitada.");
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        sender: "ia",
+        text: "Lo siento, aún no puedo procesar audio. Pero si quieres, puedes escribirme y te escucho 💙",
+      },
+    ]);
   };
 
   const handleCamera = () => {
     navigation.navigate("CamaraScreen");
   };
 
+  /* ============================================================
+     🖥️ UI
+     ============================================================ */
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
@@ -145,7 +198,7 @@ export default function ChatEmpatico({ navigation }) {
           ))}
         </ScrollView>
 
-        {/* Barra de escritura */}
+        {/* Input */}
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -154,23 +207,20 @@ export default function ChatEmpatico({ navigation }) {
             value={input}
             onChangeText={setInput}
           />
+
+          {/* 🔴 Micrófono deshabilitado */}
           <TouchableOpacity
-            style={[
-              styles.iconButton,
-              isRecording && { backgroundColor: "#ff4d4d" },
-            ]}
+            style={[styles.iconButton]}
             onPress={handleVoiceInput}
           >
-            <Ionicons
-              name={isRecording ? "mic" : "mic-outline"}
-              size={22}
-              color="#fff"
-            />
+            <Ionicons name="mic-off-outline" size={22} color="#fff" />
           </TouchableOpacity>
+
           <TouchableOpacity style={styles.iconButton} onPress={handleCamera}>
             <Ionicons name="camera-outline" size={22} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton} onPress={handleSend}>
+
+          <TouchableOpacity style={styles.iconButton} onPress={() => handleSend()}>
             <Ionicons name="send" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -206,7 +256,7 @@ export default function ChatEmpatico({ navigation }) {
   );
 }
 
-/* 🎨 Estilos mejorados para iPhone 13 */
+/* 🎨 Estilos */
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

@@ -7,6 +7,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebaseConfig";
 
+// RootNavigation
+import { navigationRef } from "./RootNavigation";
+
 // Screens
 import Bienvenida from "./screens/Bienvenida";
 import Inicio from "./screens/Inicio";
@@ -54,7 +57,7 @@ function AppTabs() {
         component={ChatEmpatico}
         options={{
           title: "Chat",
-          tabBarStyle: { display: "none" }, 
+          tabBarStyle: { display: "none" },
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="chatbubble-ellipses-outline"
@@ -99,12 +102,12 @@ function AppStack() {
         <Stack.Screen name="Historial" component={Historial} />
         <Stack.Screen name="CompartirHistorial" component={CompartirHistorial} />
 
-        {/* Pantallas accesibles directamente */}
+        {/* Acceso directo */}
         <Stack.Screen name="ChatEmpatico" component={ChatEmpatico} />
         <Stack.Screen name="LineasAyuda" component={LineasAyuda} />
         <Stack.Screen name="CamaraScreen" component={CamaraScreen} />
 
-        {/* Por si navegas desde algún botón */}
+        {/* Autenticación por si navegan manualmente */}
         <Stack.Screen name="Bienvenida" component={Bienvenida} />
         <Stack.Screen name="Inicio" component={Inicio} />
         <Stack.Screen name="Registro" component={Registro} />
@@ -114,7 +117,7 @@ function AppStack() {
 }
 
 /* ============================================================
-   🔹 FLUJO DE AUTENTICACIÓN
+   🔹 STACK DE AUTENTICACIÓN
    ============================================================ */
 function AuthStack() {
   return (
@@ -136,11 +139,27 @@ export default function App() {
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(true);
 
+  /* 🔥 Aquí se hace la redirección automática al Chat */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUsuario(user);
       setCargando(false);
+
+      if (user) {
+        console.log("➡ Usuario autenticado, navegando a ChatEmpatico…");
+
+        // Redirección GLOBAL al chat
+        setTimeout(() => {
+          if (navigationRef.isReady()) {
+            navigationRef.reset({
+              index: 0,
+              routes: [{ name: "ChatEmpatico" }],
+            });
+          }
+        }, 200);
+      }
     });
+
     return unsubscribe;
   }, []);
 
@@ -153,7 +172,7 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {usuario ? <AppStack /> : <AuthStack />}
     </NavigationContainer>
   );
