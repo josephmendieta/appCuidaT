@@ -34,11 +34,13 @@ export default function ChatEmpatico({ navigation }) {
 
     try {
 
-      const resp = await fetch("https://cuidat.vercel.app/api/chat", {
+      const response = await fetch("https://cuidat-api.vercel.app/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          message: userMsg,
+          message: userMessage,
           emocion: "ansiedad"
         }),
       });
