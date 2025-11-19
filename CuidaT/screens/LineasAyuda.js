@@ -8,6 +8,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { auth } from "../firebaseConfig";
 
 const LineasAyuda = ({ navigation }) => {
   return (

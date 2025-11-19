@@ -15,19 +15,21 @@ import ChatEmpatico from "./screens/ChatEmpatico";
 import CamaraScreen from "./screens/CamaraScreen";
 import LineasAyuda from "./screens/LineasAyuda";
 import Ayuda from "./screens/Ayuda";
-import Perfil from "./screens/Perfil.js";
-import ResumenPrivacidad from "./screens/ResumenPrivacidad.js";
+import Perfil from "./screens/Perfil";
+import ResumenPrivacidad from "./screens/ResumenPrivacidad";
 import Historial from "./screens/Historial";
+import CompartirHistorial from "./screens/CompartirHistorial";
 
-// Contexto
+// Context
 import { InactivityProvider } from "./context/InactivityContext";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-
-// 🔹 Tabs principales (aquí ChatEmpatico es la pantalla inicial)
-function AppTabs({ navigation, route }) {
+/* ============================================================
+   🔹 BOTTOM TABS (ChatEmpatico es la pantalla inicial)
+   ============================================================ */
+function AppTabs() {
   return (
     <Tab.Navigator
       initialRouteName="ChatEmpatico"
@@ -52,7 +54,7 @@ function AppTabs({ navigation, route }) {
         component={ChatEmpatico}
         options={{
           title: "Chat",
-          tabBarStyle: { display: "none" }, // 👈 SE OCULTA AQUÍ — NO EN EL NAVIGATOR
+          tabBarStyle: { display: "none" }, 
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="chatbubble-ellipses-outline"
@@ -77,24 +79,32 @@ function AppTabs({ navigation, route }) {
   );
 }
 
-
-// 🔹 Stack principal para usuarios autenticados
+/* ============================================================
+   🔹 STACK PRINCIPAL (usuarios autenticados)
+   ============================================================ */
 function AppStack() {
   return (
     <InactivityProvider>
       <Stack.Navigator
-        // 🟢 ChatEmpatico será la primera pantalla porque es la ruta inicial
-        // de MainTabs, que a su vez es la ruta inicial de AppStack.
         initialRouteName="MainTabs"
         screenOptions={{ headerShown: false }}
       >
+        {/* Pantalla principal con Tabs */}
         <Stack.Screen name="MainTabs" component={AppTabs} />
 
-        {/* Otras pantallas */}
+        {/* Pantallas secundarias */}
         <Stack.Screen name="Ayuda" component={Ayuda} />
         <Stack.Screen name="Perfil" component={Perfil} />
         <Stack.Screen name="ResumenPrivacidad" component={ResumenPrivacidad} />
         <Stack.Screen name="Historial" component={Historial} />
+        <Stack.Screen name="CompartirHistorial" component={CompartirHistorial} />
+
+        {/* Pantallas accesibles directamente */}
+        <Stack.Screen name="ChatEmpatico" component={ChatEmpatico} />
+        <Stack.Screen name="LineasAyuda" component={LineasAyuda} />
+        <Stack.Screen name="CamaraScreen" component={CamaraScreen} />
+
+        {/* Por si navegas desde algún botón */}
         <Stack.Screen name="Bienvenida" component={Bienvenida} />
         <Stack.Screen name="Inicio" component={Inicio} />
         <Stack.Screen name="Registro" component={Registro} />
@@ -103,11 +113,15 @@ function AppStack() {
   );
 }
 
-
-// 🔹 Flujo de autenticación (NO toca ChatEmpatico)
+/* ============================================================
+   🔹 FLUJO DE AUTENTICACIÓN
+   ============================================================ */
 function AuthStack() {
   return (
-    <Stack.Navigator initialRouteName="Bienvenida" screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      initialRouteName="Bienvenida"
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen name="Bienvenida" component={Bienvenida} />
       <Stack.Screen name="Inicio" component={Inicio} />
       <Stack.Screen name="Registro" component={Registro} />
@@ -115,8 +129,9 @@ function AuthStack() {
   );
 }
 
-
-// 🔹 App principal
+/* ============================================================
+   🔹 APP PRINCIPAL
+   ============================================================ */
 export default function App() {
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(true);

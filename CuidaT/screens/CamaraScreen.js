@@ -1,3 +1,5 @@
+import { registrarRegistroEmocional } from "../utils/registroEventos";
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -11,6 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { auth } from "../firebaseConfig";
 
 export default function CamaraScreen({ navigation }) {
   const [selectedEmotion, setSelectedEmotion] = useState(null);
@@ -31,14 +34,25 @@ export default function CamaraScreen({ navigation }) {
     }
   }, []);
 
-  const iniciarAnalisis = () => {
+  const iniciarAnalisis = async () => {
     if (!selectedEmotion) {
       alert("Selecciona una emoción antes de iniciar el análisis.");
       return;
     }
+
     console.log("🎭 Emoción seleccionada:", selectedEmotion);
-    Alert.alert("Análisis iniciado", `Detectando: ${selectedEmotion}`);
+
+    const emocion = selectedEmotion.trim().toLowerCase();
+
+    if (["ansiedad", "tristeza", "enojo"].includes(emocion)) {
+      await registrarRegistroEmocional(emocion, 7, "Detectada desde Cámara");
+      navigation.navigate("LineasAyuda");
+    } else {
+      await registrarRegistroEmocional(emocion, 5, "Emoción normal detectada");
+      Alert.alert("Análisis registrado", "Tu emoción ha sido registrada.");
+    }
   };
+
 
   if (!permission) {
     return (

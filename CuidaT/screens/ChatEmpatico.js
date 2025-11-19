@@ -1,3 +1,5 @@
+import { registrarInteraccion } from "../utils/registroEventos";
+
 import React, { useState } from "react";
 import {
   View,
@@ -11,6 +13,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { auth } from "../firebaseConfig";
 
 export default function ChatEmpatico({ navigation }) {
   const [messages, setMessages] = useState([
@@ -24,36 +27,55 @@ export default function ChatEmpatico({ navigation }) {
   const [isRecording, setIsRecording] = useState(false);
 
   const handleSend = async () => {
+    const palabrasRiesgo = [
+      "suicidio", "suicidarme", "matarme", "quitarme la vida",
+      "morirme", "me quiero morir", "no quiero vivir",
+      "ya no puedo más", "terminar todo", "autolesión", "hacerme daño"
+    ];
+
+    const contieneRiesgo = (texto) => {
+      return palabrasRiesgo.some((p) => texto.toLowerCase().includes(p));
+    };
+
     if (!input.trim()) return;
 
-    const newMessage = { id: Date.now(), sender: "user", text: input };
-    setMessages([...messages, newMessage]);
-
-    const userMsg = input;
+    const userMsg = input.trim();
     setInput("");
 
-    try {
+    const newMessage = { id: Date.now(), sender: "user", text: userMsg };
+    setMessages((prev) => [...prev, newMessage]);
 
+    // Registrar interacción
+    registrarInteraccion("chat", "Conversación usuario → IA");
+
+    // ⚠️ Riesgo detectado
+    if (contieneRiesgo(userMsg)) {
+      registrarInteraccion("alerta", `Riesgo detectado: ${userMsg}`);
+      navigation.navigate("CamaraScreen", { motivo: "riesgo" });
+      return;
+    }
+
+    try {
       const response = await fetch("https://cuidat-api.vercel.app/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: userMessage,
+          userMessage: userMsg,
           emocion: "ansiedad"
         }),
       });
 
+      const data = await response.json();
 
-      const data = await resp.json();
-
-      const aiResponse = {
+      const aiMsg = {
         id: Date.now(),
         sender: "ia",
-        text: data.respuesta,
+        text: data.reply || data.respuesta || "Lo siento, no entendí bien."
       };
-      setMessages((prev) => [...prev, aiResponse]);
+      setMessages((prev) => [...prev, aiMsg]);
+
+      registrarInteraccion("respuesta_ia", aiMsg.text);
+
     } catch (e) {
       setMessages((prev) => [
         ...prev,

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { auth } from "../firebaseConfig";
 
 const Ayuda = ({ navigation }) => {
   const [faqActiva, setFaqActiva] = useState(null);

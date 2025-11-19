@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 // Importamos los iconos
 import { Ionicons } from '@expo/vector-icons';
+import { auth } from "../firebaseConfig";
 
 // --- Componente Reutilizable para cada punto de Privacidad ---
 const PrivacyPoint = ({ iconName, title, description, isLink = false }) => (
